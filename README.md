@@ -4,7 +4,7 @@ This is a project from my COP 4600 class
 
 myshell uses a Unix environment to replace the command shell in Unix
 
-##command list
+## command list
 
 **[] defines an optional choice**
 
