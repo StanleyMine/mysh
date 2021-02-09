@@ -374,22 +374,56 @@ void moveToDir(char **args)
         return;
     }
 
-    const char s[2] = "/";
+    char newPath[100];
+
+    if (args[0][0] == '.' && args[0][1] == '.' && args[0][2] == '/')
+    {
+        for (int i = strlen(currentDir); i > 0; i--)
+        {
+            if (currentDir[i] == '/')
+            {
+                char tmp2[100] = "";
+                for (int j = 0; j < i; j++)
+                {
+                    tmp2[j] = currentDir[j]; // remove dir from currdir
+                }
+                strcpy(currentDir, tmp2);
+                break;
+            }
+        }
+        for (int i = 3; i < strlen(args[0]); i++)
+        {
+            newPath[i - 3] = args[0][i];
+        }
+    }
+    else if (args[0][0] == '.' && args[0][1] == '/')
+    {
+        for (int i = 2; i < strlen(args[0]); i++)
+        {
+            newPath[i - 2] = args[0][i];
+        }
+    }
+    else
+    {
+        strcpy(newPath, args[0]);
+    }
 
     char copydir[100];
     strcpy(copydir, currentDir);
-    if (args[0][0] != '/')
+
+    if (newPath[0] != '/')
     {
         strcat(copydir, "/");
     }
-    strcat(copydir, args[0]);
+
+    strcat(copydir, newPath);
     DIR *dir = opendir(copydir); // testing if dir exists
 
     if (dir)
     {
         // logic for cd ..
         // it's just string manipulation
-        if (strcmp(args[0], "..") == 0)
+        if (strcmp(newPath, "..") == 0)
         {
             for (int i = strlen(currentDir); i > 0; i--)
             {
@@ -411,7 +445,7 @@ void moveToDir(char **args)
         closedir(dir);
     }
     else // dir does not exist
-        printf("Sorry, %s does not exist.\n", args[0]);
+        printf("Sorry, %s does not exist.\n", newPath);
 }
 
 int findCommand(char *cmmd)
