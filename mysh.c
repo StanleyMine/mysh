@@ -25,7 +25,8 @@ int activePID[100];
 int pidCount;
 char currentDir[100];
 char *validCommands[] = {"movetodir", "whereami", "history", "byebye", "replay",
-                         "start", "background", "dalek", "repeat", "dalekall", "help"};
+                         "start", "background", "dalek", "repeat", "dalekall",
+                         "help", "maik", "dwelt", "coppy", "coppyabode"};
 
 //function signatures
 void insert(char *cmmd);
@@ -45,12 +46,18 @@ void getHistory();
 void saveHistory();
 void repeatNumber(char **args);
 void dalekAll();
+void maikFile(char **args);
+void dweltCheck(char **args);
+void copyFilesOver(char **args);
 
 int main()
 {
+    // initialize current directory
     getCurrDir();
     char cmmd[100];
+    // get history or create new history
     getHistory();
+    // loop until user exits program
     while (!exitStatus)
     {
         printf("# ");
@@ -87,7 +94,7 @@ void tokenize(char *cmmd)
     for (int i = 0; i < strlen(tmp); i++)
     {
         if (tmp[i] == '\n') // trying to remove newline char
-            tmp[i] = '\0';
+            tmp[i] = '\0'; 
     }
 
     strcpy(args[0], "");
@@ -178,7 +185,106 @@ void delegateCommand(char *cmmd, char **args)
         7.background program [parameters]\n\
         8.dalek pid\n");
         break;
+    case 11:
+        maikFile(args);
+        break;
+    case 12:
+        dweltCheck(args);
+        break;
+    case 13:
+        copyFilesOver(args);
+        break;
     }
+}
+
+void copyFilesOver(char **args){
+    FILE *fp1, *fp2;
+
+    // error checking
+    if(access(args[0], F_OK) != 0){
+        // source file does not exist
+        printf("********ERROR********\n");
+        printf("Source file does not exist\n");
+        return;
+    }
+    if(access(args[1], F_OK) == 0){
+        // destination file exists
+        printf("********ERROR********\n");
+        printf("Destination file already exists\n");
+        return;
+    }
+
+    fp1 = fopen(args[0], "r");
+    fp2 = fopen(args[1], "w");
+
+    if(fp1 == NULL){
+        printf("Cannot open file1\n");
+        exit(0);
+    }
+    if(fp2 == NULL){
+        printf("Cannot open file or directory\n");
+        exit(0);
+    }
+
+    char tmp = fgetc(fp1);
+    while(tmp != EOF){
+        fputc(tmp, fp2);
+        tmp = fgetc(fp1);
+    }
+
+    fclose(fp1);
+    fclose(fp2);
+}
+
+void dweltCheck(char **args){
+
+    // checking directory first
+    // because access treats dir like file
+    DIR *dir = opendir(args[0]);
+    if(dir){
+        // check if it's a directory
+        printf("Abode is\n");
+        return;
+    }
+    
+    if(access(args[0], F_OK) == 0){
+        // check if it's a directory
+        printf("Dwelt indeed\n");
+        return;
+    }
+    
+    // neither
+    printf("Dwelt not\n");
+}
+
+void maikFile(char **args){
+    if(access(args[0], F_OK) == 0){
+        // file already exists
+        printf("********ERROR********\n");
+        printf("File already exists\n");
+        return;
+    }
+    // file does not exist
+    FILE *fp;
+
+    //check if it's an absolute path
+    if(args[0][0] == '/'){
+        fp = fopen(args[0], "w");
+        fputs("Draft", fp);
+        fclose(fp);
+        return;
+    }
+
+    // create file in current directory
+    // so need to append file onto current directory
+    char tmp[200];
+    strcpy(tmp, currentDir);
+    strcat(tmp, "/");
+    strcat(tmp, args[0]);
+
+    fp = fopen(tmp, "w"); // open for writing
+    fputs("Draft", fp);
+    fclose(fp);
 }
 
 void startProcess(char **args)
